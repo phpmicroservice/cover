@@ -17,12 +17,13 @@ class Cover extends Base
      *
      * @param array $article_id_list
      */
-    public function cover_list4id(array $article_id_list)
+    public function cover_list4id(array $article_id_list, string $type)
     {
         $article_list = \app\model\cover::find([
-            'article_id IN ({article_id_list:array})',
+            'ob_id IN ({ob_id_list:array}) and type = :type:',
             'bind' => [
-                'article_id_list' => $article_id_list
+                'ob_id_list' => $article_id_list,
+                'type' => $type
             ]
         ]);
         if (empty($article_list)) {
@@ -30,7 +31,7 @@ class Cover extends Base
         }
         $list = $article_list->toArray();
         output([$article_id_list, $list]);
-        return array_column($list, null, 'article_id');
+        return array_column($list, null, 'ob_id');
 
     }
 
@@ -39,30 +40,15 @@ class Cover extends Base
      * @param $article_id
      * @param $file_id
      */
-    public function setcover($article_id, $file_id)
+    public function setcover($article_id, $type, $server_name, $file_id)
     {
         # 读取数据
-        $info = $this->info($article_id);
+        $info = $this->info($article_id, $type, $server_name);
         if (!($info instanceof \app\model\cover)) {
             return false;
         }
-        # x先验证
-        $va = new Validation();
-        $va->add_Validator('file_id', [
-            'name' => Validation\Validator\ServerAction::class,
-            'server_action' => 'file@/server/ex_array',
-            'data' => [
-                'array_id' => $info->file_array_id,
-                'type' => 'cms',
-                'file_id' => $file_id
-            ]
-        ]);
-        if ($va->validate([''])) {
 
-        }
         # 验证完成
-
-        $info = $this->info($article_id);
         if (!($info instanceof \app\model\cover)) {
             return false;
         }
@@ -73,25 +59,71 @@ class Cover extends Base
         return true;
     }
 
+
+    /**
+     * 设置封面
+     * @param $article_id
+     * @param $file_id
+     */
+    public function setcover4id($id, $file_id)
+    {
+        # 读取数据
+        $info = \app\model\cover::findFirst($id);
+        if (!($info instanceof \app\model\cover)) {
+            return false;
+        }
+
+        # 验证完成
+        if (!($info instanceof \app\model\cover)) {
+            return false;
+        }
+        $info->cover_file_id = $file_id;
+        if (!$info->save()) {
+            return $info->getMessages();
+        }
+        return true;
+    }
+
+    public function newinfo($type, $server_name)
+    {
+        $data = [
+            'user_id' => 0,
+            'remark' => 'cover_cover',
+            'only' => 0
+        ];
+
+        $re = $this->proxyCS->request_return('file', '/server/create_array', $data);
+        if (is_array($re) && !$re['e'] && is_int($re['d'])) {
+            # 成功创建
+            $data = [
+                'ob_id' => 0,
+                'type' => $type,
+                'server_name' => $server_name,
+                'file_array_id' => $re['d'],
+                'cover_file_id' => 0
+            ];
+            $model = new \app\model\cover();
+            if (!$model->save($data)) {
+                return false;
+            }
+            return $model;
+        }
+    }
+
     /**
      * 获取封面你的信息
      * @param $article_id
      */
-    public function info($article_id)
+    public
+    function info($article_id, $type, $server_name)
     {
-        # 查看文章是否存在
-        $article = \app\model\article::findFirst([
-            'id =:article_id:', 'bind' => [
-                'article_id' => $article_id
-            ]
-        ]);
-        if (empty($article)) {
-            return false;
-        }
-
+        # 读取已存在的封面
         $info = \app\model\cover::findFirst([
-            'article_id =:article_id:', 'bind' => [
-                'article_id' => $article_id
+            'ob_id =:ob_id: and type = :type: and server_name = :server_name:',
+            'bind' => [
+                'ob_id' => $article_id,
+                'type' => $type,
+                'server_name' => $server_name
             ]
         ]);
 
@@ -107,7 +139,9 @@ class Cover extends Base
             if (is_array($re) && !$re['e'] && is_int($re['d'])) {
                 # 成功创建
                 $data = [
-                    'article_id' => $article_id,
+                    'ob_id' => $article_id,
+                    'type' => $type,
+                    'server_name' => $server_name,
                     'file_array_id' => $re['d'],
                     'cover_file_id' => 0
                 ];
