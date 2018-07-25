@@ -84,7 +84,13 @@ class Cover extends Base
         return true;
     }
 
-    public function newinfo($type, $server_name)
+    /**
+     * 获取一个与之新封面信息
+     * @param $type
+     * @param $server_name
+     * @return \app\model\cover|bool
+     */
+    public function  newinfo($type, $server_name)
     {
         $data = [
             'user_id' => 0,
@@ -114,12 +120,11 @@ class Cover extends Base
      * 获取封面你的信息
      * @param $article_id
      */
-    public
-    function info($article_id, $type, $server_name)
+    public    function info($article_id, $type, $server_name)
     {
         # 读取已存在的封面
         $info = \app\model\cover::findFirst([
-            'ob_id =:ob_id: and type = :type: and server_name = :server_name:',
+            'ob_id =:ob_id: and type = :type: and sn = :server_name:',
             'bind' => [
                 'ob_id' => $article_id,
                 'type' => $type,
@@ -138,16 +143,17 @@ class Cover extends Base
             $re = $this->proxyCS->request_return('file', '/server/create_array', $data);
             if (is_array($re) && !$re['e'] && is_int($re['d'])) {
                 # 成功创建
-                $data = [
+                $data147 = [
                     'ob_id' => $article_id,
                     'type' => $type,
-                    'server_name' => $server_name,
+                    'sn' => $server_name,
                     'file_array_id' => $re['d'],
                     'cover_file_id' => 0
                 ];
+                var_dump($data147);
                 $model = new \app\model\cover();
-                if (!$model->save($data)) {
-                    return false;
+                if (!$model->save($data147)) {
+                    return $model->getMessage();
                 }
                 return $model;
             } else {
