@@ -90,7 +90,7 @@ class Cover extends Base
      * @param $server_name
      * @return \app\model\cover|bool
      */
-    public function  newinfo($type, $server_name)
+    public function newinfo($type, $server_name)
     {
         $data = [
             'user_id' => 0,
@@ -116,11 +116,18 @@ class Cover extends Base
         }
     }
 
+    public function info4id($id)
+    {
+        # 读取已存在的封面
+        $info = \app\model\cover::findFirst($id);
+        return $info;
+    }
+
     /**
      * 获取封面你的信息
      * @param $article_id
      */
-    public    function info($article_id, $type, $server_name)
+    public function info($article_id, $type, $server_name)
     {
         # 读取已存在的封面
         $info = \app\model\cover::findFirst([
@@ -161,6 +168,38 @@ class Cover extends Base
             }
         }
         return $info;
+    }
+
+    /**
+     * 获取封面你的信息,不自动创建
+     * @param $article_id
+     */
+    public function info2($article_id, $type, $server_name, $file_list = true)
+    {
+        # 读取已存在的封面
+        $info = \app\model\cover::findFirst([
+            'ob_id =:ob_id: and type = :type: and sn = :server_name:',
+            'bind' => [
+                'ob_id' => $article_id,
+                'type' => $type,
+                'server_name' => $server_name
+            ]
+        ]);
+        if ($info instanceof \app\model\cover) {
+            $arr = $info->toArray();
+            if ($file_list) {
+                $info = $this->proxyCS->request_return('file', '/server/arrayfilelist', ['array_id' => $arr['file_array_id']]);
+                var_dump($info);
+                if (!is_array($info) || $info['e']) {
+                    $arr['filelist'] = false;
+                } else {
+                    $arr['filelist'] = $info['d'];
+                }
+            }
+            return $arr;
+        } else {
+            return false;
+        }
     }
 
 }
