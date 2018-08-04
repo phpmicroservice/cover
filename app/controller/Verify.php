@@ -30,7 +30,7 @@ class Verify extends \app\Controller
                 'id'=>$id
             ]
         ]);
-        return $info instanceof \app\model\cover;
+        $this->send($info instanceof \app\model\cover) ;
     }
 
 }
