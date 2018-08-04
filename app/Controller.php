@@ -27,11 +27,9 @@ class Controller extends \pms\Controller
      */
     public function initialize()
     {
-        $this->user_id = $this->session->user_id;
-        $this->di->setShared('message', function () {
-            return new Group();
-        });
-        $this->message->pruge();
+        if (is_object($this->session)) {
+            $this->user_id = $this->session->get('user_id');
+        }
         parent::initialize();
     }
 
