@@ -13,7 +13,7 @@ class Alc extends Base
 {
     public $user_id;
     public $serverTask = [
-        'server', 'index', 'transaction','verify'
+        'server', 'transaction','verify'
     ];
 
     /**
@@ -25,7 +25,8 @@ class Alc extends Base
      */
     public function beforeDispatch(\Phalcon\Events\Event $Event, \pms\Dispatcher $dispatcher)
     {
-        if ($dispatcher->getTaskName() == 'demo') {
+        if (in_array($dispatcher->getTaskName(), ['demo','index'])) {
+            #公共权限
             return true;
         }
         if (in_array($dispatcher->getTaskName(), $this->serverTask)) {

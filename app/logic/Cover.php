@@ -120,6 +120,9 @@ class Cover extends Base
     {
         # 读取已存在的封面
         $info = \app\model\cover::findFirst($id);
+        if($info instanceof \app\model\cover){
+            return $this->file_list($info->toArray());
+        }
         return $info;
     }
 
@@ -188,18 +191,24 @@ class Cover extends Base
         if ($info instanceof \app\model\cover) {
             $arr = $info->toArray();
             if ($file_list) {
-                $info = $this->proxyCS->request_return('file', '/server/arrayfilelist', ['array_id' => $arr['file_array_id']]);
-                var_dump($info);
-                if (!is_array($info) || $info['e']) {
-                    $arr['filelist'] = false;
-                } else {
-                    $arr['filelist'] = $info['d'];
-                }
+                return $this->file_list($arr);
             }
             return $arr;
         } else {
             return false;
         }
+    }
+
+    private function file_list($arr)
+    {
+        $info = $this->proxyCS->request_return('file', '/server/arrayfilelist', ['array_id' => $arr['file_array_id']]);
+        var_dump($info);
+        if (!is_array($info) || $info['e']) {
+            $arr['filelist'] = false;
+        } else {
+            $arr['filelist'] = $info['d'];
+        }
+        return $arr;
     }
 
 }
