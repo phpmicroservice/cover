@@ -19,6 +19,9 @@ class Cover extends Base
      */
     public function cover_list4id(array $article_id_list, string $type)
     {
+        if(empty($article_id_list)){
+            return [];
+        }
         $article_list = \app\model\cover::find([
             'ob_id IN ({ob_id_list:array}) and type = :type:',
             'bind' => [
