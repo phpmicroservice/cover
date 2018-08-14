@@ -207,7 +207,7 @@ class Cover extends Base
         $info = $this->proxyCS->request_return('file', '/server/arrayfilelist', ['array_id' => $arr['file_array_id']]);
         var_dump($info);
         if (!is_array($info) || $info['e']) {
-            $arr['filelist'] = false;
+            $arr['filelist'] = [];
         } else {
             $arr['filelist'] = $info['d'];
         }
