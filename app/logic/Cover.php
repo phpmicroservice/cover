@@ -208,6 +208,7 @@ class Cover extends Base
      */
     private function file_list($arr)
     {
+        
         $info = $this->proxyCS->request_return('file', '/server/arrayfilelist', ['array_id' => $arr['file_array_id']]);
         var_dump($info);
         if (!is_array($info) || $info['e']) {
